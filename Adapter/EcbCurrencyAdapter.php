@@ -45,7 +45,22 @@ class EcbCurrencyAdapter extends AbstractCurrencyAdapter
 
         if ($xml instanceof \SimpleXMLElement) {
             $crawler = new Crawler($xml->asXML());
-            $datas = $crawler
+
+
+            // Symfony 2.4
+            $data = $crawler->filterXPath('//gesmes:Envelope/*[3]/*');
+            foreach ($data->children() as $child) {
+                if (in_array($child->getAttribute('currency'), $this->managedCurrencies)) {
+                    $currency = new $this->currencyClass;
+                    $currency->setCode($child->getAttribute('currency'));
+                    $currency->setRate($child->getAttribute('rate'));
+
+                    $this[$currency->getCode()] = $currency;
+                }
+            }
+
+            // Symfony 2.3
+            /*$datas = $crawler
                 ->filter('cube > cube > cube')
                 ->extract(array('currency', 'rate'));
 
@@ -57,7 +72,7 @@ class EcbCurrencyAdapter extends AbstractCurrencyAdapter
 
                     $this[$currency->getCode()] = $currency;
                 }
-            }
+            }*/
 
             if (isset($this[$this->defaultCurrency])) {
                 $defaultRate = $this[$this->defaultCurrency]->getRate();
